@@ -1,0 +1,13 @@
+version: '2.1'
+
+services:
+  deeplearning:
+    image: fotcorn/deeplearning
+    volumes:
+      - ./:/home/user/code
+    ports:
+      - "8888:8888"
+    environment:
+      - "PASSWORD=${PASSWORD}"
+      - "USER_ID=${USER_ID}"
+      - "GROUP_ID=${GROUP_ID}"
