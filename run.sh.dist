@@ -1,0 +1,9 @@
+#!/bin/bash
+# example run.sh file to set some configuration variables used by docker-compose
+# generate this with jupyter notebook
+export PASSWORD=TODO
+# run the notebook with the current host system user.
+# This way the files created in the notebook have the same user/group as the host system
+export USER_ID=`id -u $USER`
+export GROUP_ID=`id -g $USER`
+docker-compose up
