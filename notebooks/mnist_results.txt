@@ -613,6 +613,7 @@ Epoch: 46, Loss: -0.9876644015312195
 Epoch: 47, Loss: -0.9801554083824158
 Epoch: 48, Loss: -0.9868651628494263
 Epoch: 49, Loss: -0.9864913821220398
+
 {'kernel_size': 5, 'conv_out_channels1': 5, 'conv_out_channels2': 10, 'linear_size': 50}
 Epoch: 0, Loss: -0.942277729511261
 Epoch: 1, Loss: -0.9598850607872009
