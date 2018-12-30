@@ -1,6 +1,5 @@
 data/
-rock_artists.py
-electro_artists.py
+*.json
 electro/
 rock/
 classic/
