@@ -7,6 +7,7 @@ from torch import nn
 from torchvision import models, transforms
 from PIL import Image
 
+
 def main():
     labels = sorted([i[:-4] for i in os.listdir('icons')])
 
@@ -30,7 +31,6 @@ def main():
         net_input = torch.unsqueeze(net_input, 0)
 
         outputs = model(net_input)
-        print(outputs)
         outputs = outputs[0]
         for i in range(len(outputs)):
             if outputs[i] > 0.9:

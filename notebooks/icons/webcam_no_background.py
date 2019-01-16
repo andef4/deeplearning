@@ -1,5 +1,11 @@
 import cv2
+import os
+import torch
+from torch import nn
+from torchvision import models, transforms
+from PIL import Image
 import numpy as np
+import torch.nn.functional as F
 
 cap = cv2.VideoCapture(0)
 
@@ -24,6 +30,22 @@ cv2.createTrackbar('S ROWS', 'panel', 0, 480, nothing)
 cv2.createTrackbar('E ROWS', 'panel', 480, 480, nothing)
 cv2.createTrackbar('S COL', 'panel', 0, 640, nothing)
 cv2.createTrackbar('E COL', 'panel', 640, 640, nothing)
+
+
+# net
+labels = sorted([i[:-4] for i in os.listdir('icons')])
+model = models.resnet18(pretrained=False)
+model.fc = nn.Linear(512, len(labels))
+state_dict = torch.load('resnet18_4_reduced_colorjitter_no_background_0.97250.pth', map_location='cpu')
+model.load_state_dict(state_dict)
+model.eval()
+
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+])
+# net
+
 
 while True:
     _, frame = cap.read()
@@ -57,6 +79,18 @@ while True:
     cv2.imshow('fg', fg)
 
     cv2.imshow('panel', panel)
+
+    image = Image.fromarray(fg)
+    net_input = transform(image.resize((224, 224), Image.LANCZOS))
+    net_input = torch.unsqueeze(net_input, 0)
+
+    outputs = model(net_input)
+    outputs = outputs[0]
+    print(labels[F.sigmoid(outputs).argmax()])
+    #for i in range(len(outputs)):
+    #    if outputs[i] > 0.9:
+    #        print(labels[i])
+    #print('-------')
 
     k = cv2.waitKey(30) & 0xFF
     if k == 27:
