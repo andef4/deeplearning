@@ -71,7 +71,7 @@ def train_model(name, model, dataloaders, criterion, optimizer, device, num_epoc
                 torch.save(model.state_dict(), f'{name}_{best_acc:.5f}.pth')
 
 def train_model_multi_class(name, model, dataloaders, criterion, optimizer, device, num_epochs=25, calc_accuracy=False):
-    best_loss = 100000000.0
+    best_acc = 0.0
     
     if not os.path.exists('results'):
         os.mkdir('results')
@@ -117,15 +117,14 @@ def train_model_multi_class(name, model, dataloaders, criterion, optimizer, devi
 
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
-                if epoch % 20 == 0:
-                    shape = outputs.shape
-                    for i in range(shape[0]):
-                        for j in range(shape[1]):
-                            if not ((outputs[i][j] >= 0.9 and labels[i][j] >= 0.9) or
-                                    (outputs[i][j] < 0.9 and labels[i][j] < 0.9)):
-                                break
-                        else:
-                            running_corrects += 1
+                shape = outputs.shape
+                for i in range(shape[0]):
+                    for j in range(shape[1]):
+                        if not ((outputs[i][j] >= 0.9 and labels[i][j] >= 0.9) or
+                                (outputs[i][j] < 0.9 and labels[i][j] < 0.9)):
+                            break
+                    else:
+                        running_corrects += 1
 
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects / len(dataloaders[phase].dataset)
@@ -135,12 +134,11 @@ def train_model_multi_class(name, model, dataloaders, criterion, optimizer, devi
                 train_accuracy = epoch_acc
             else:
                 stats = f'Epoch: {epoch}, TL: {train_loss:.5f}, VL: {epoch_loss:.5f}'
-                if epoch % 20 == 0:
-                    stats += f', TA: {train_accuracy:.5f}, VA: {epoch_acc:.5f}'
+                stats += f', TA: {train_accuracy:.5f}, VA: {epoch_acc:.5f}'
                 print(stats)
                 f.write(f'{stats}\n')
 
             # deep copy the model
-            if phase == 'val' and epoch_loss < best_loss:
-                best_loss = epoch_loss
-                torch.save(model.state_dict(), f'{name}_{best_loss:.5f}.pth')
+            if phase == 'val' and epoch_acc > best_acc:
+                best_acc = epoch_acc
+                torch.save(model.state_dict(), f'{name}_{best_acc:.5f}.pth')
