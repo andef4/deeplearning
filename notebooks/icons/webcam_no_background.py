@@ -80,17 +80,17 @@ while True:
 
     cv2.imshow('panel', panel)
 
-    image = Image.fromarray(fg)
+    image = cv2.cvtColor(fg, cv2.COLOR_BGR2RGB)
+    image = Image.fromarray(image)
     net_input = transform(image.resize((224, 224), Image.LANCZOS))
     net_input = torch.unsqueeze(net_input, 0)
 
     outputs = model(net_input)
     outputs = outputs[0]
-    print(labels[F.sigmoid(outputs).argmax()])
-    #for i in range(len(outputs)):
-    #    if outputs[i] > 0.9:
-    #        print(labels[i])
-    #print('-------')
+    for i in range(len(outputs)):
+        if F.sigmoid(outputs[i]) > 0.5:
+            print(labels[i].replace('t-', 'cross-'))
+    print('-------')
 
     k = cv2.waitKey(30) & 0xFF
     if k == 27:

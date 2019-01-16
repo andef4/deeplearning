@@ -27,6 +27,7 @@ def main():
     while True:
         ret_val, img = cam.read()
         image = Image.fromarray(img)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         net_input = transform(image.resize((224, 224), Image.LANCZOS))
         net_input = torch.unsqueeze(net_input, 0)
 
