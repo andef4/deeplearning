@@ -5,7 +5,6 @@ from torch import nn
 from torchvision import models, transforms
 from PIL import Image
 import numpy as np
-import torch.nn.functional as F
 
 cap = cv2.VideoCapture(0)
 
@@ -21,7 +20,7 @@ cv2.createTrackbar('L - h', 'panel', 0, 179, nothing)
 cv2.createTrackbar('U - h', 'panel', 179, 179, nothing)
 
 cv2.createTrackbar('L - s', 'panel', 0, 255, nothing)
-cv2.createTrackbar('U - s', 'panel', 60, 255, nothing)
+cv2.createTrackbar('U - s', 'panel', 80, 255, nothing)
 
 cv2.createTrackbar('L - v', 'panel', 0, 255, nothing)
 cv2.createTrackbar('U - v', 'panel', 255, 255, nothing)
@@ -34,6 +33,7 @@ cv2.createTrackbar('E COL', 'panel', 640, 640, nothing)
 
 # net
 labels = sorted([i[:-4] for i in os.listdir('icons')])
+labels = [label[0].upper() + label[1:] for label in labels]
 model = models.resnet18(pretrained=False)
 model.fc = nn.Linear(512, len(labels))
 state_dict = torch.load('resnet18_4_reduced_colorjitter_no_background_0.97250.pth', map_location='cpu')
@@ -75,11 +75,6 @@ while True:
     bg = cv2.bitwise_and(roi, roi, mask=mask)
     fg = cv2.bitwise_and(roi, roi, mask=mask_inv)
 
-    cv2.imshow('bg', bg)
-    cv2.imshow('fg', fg)
-
-    cv2.imshow('panel', panel)
-
     image = cv2.cvtColor(fg, cv2.COLOR_BGR2RGB)
     image = Image.fromarray(image)
     net_input = transform(image.resize((224, 224), Image.LANCZOS))
@@ -87,10 +82,30 @@ while True:
 
     outputs = model(net_input)
     outputs = outputs[0]
+    found_labels = []
     for i in range(len(outputs)):
-        if F.sigmoid(outputs[i]) > 0.5:
-            print(labels[i].replace('t-', 'cross-'))
+        if torch.sigmoid(outputs[i]) > 0.3:
+            # hack to map cross detected as T back to cross
+            # do not use shape T with this
+            l = labels[i].replace('T-', 'Cross-')
+            found_labels.append(l)
+            print(l)
     print('-------')
+    found_labels1 = ', '.join(found_labels[:3])
+    found_labels2 = ', '.join(found_labels[3:6])
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(fg, found_labels1, (10, 460), font, 0.75, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(bg, found_labels1, (10, 460), font, 0.75, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(roi, found_labels1, (10, 460), font, 0.75, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(fg, found_labels2, (10, 430), font, 0.75, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(bg, found_labels2, (10, 430), font, 0.75, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(roi, found_labels2, (10, 430), font, 0.75, (255, 255, 255), 1, cv2.LINE_AA)
+
+    cv2.imshow('background', bg)
+    cv2.imshow('foreground', fg)
+    cv2.imshow('webcam', roi)
+
+    cv2.imshow('panel', panel)
 
     k = cv2.waitKey(30) & 0xFF
     if k == 27:
